@@ -32,8 +32,6 @@ then
     exit;
 fi
 
-exit;
-
 # [ convert pdf ]
 find . -type f -name "*.pdf" -o -name "*.PDF" |
 while read FILENAME;
