@@ -78,7 +78,7 @@ do
             px=$px_pic;
         fi
 
-        if (( width > height ));
+        if (( $width > $height ));
         then
             px="$px x";
         else
