@@ -1,0 +1,94 @@
+#!/bin/bash
+# global config
+site="";
+speed="500K";
+max_file_size=2097152;
+sufix=".0x0";
+file_url_list="list_big_files.txt";
+# image config
+quality=65;
+news="news";
+px_pic=1600;
+px_news=800;
+
+# [ download from ciur ]
+#wget -np -r -p -k -i $file_url_list --limit-rate=$speed;
+while read LINE
+do
+    size=$(curl -sI "$LINE" | awk '/Content-Length: / { print $2 }' | sed 's/[^0-9]/ /g');
+    if (( $size >= $max_file_size ));
+    then
+        echo "[<] Скачиваем файл $LINE Размер: $size";
+        wget -np -r -p -k "%site%LINE" --limit-rate=$speed;
+    else
+        echo "[>] Файл с нормальным размером: $LINE";
+    fi
+done < $file_url_list
+
+cd ciur.ru;
+if [ ${PWD##*/} != "ciur.ru" ]
+then
+    echo "[-] Не найден каталог ciur.ru";
+    exit;
+fi
+
+exit;
+
+# [ convert pdf ]
+find . -type f -name "*.pdf" -o -name "*.PDF" |
+while read FILENAME;
+do
+    size=$(stat -c%s "$FILENAME");
+    if (( $size >= $max_file_size ));
+    then
+        echo "$FILENAME";
+
+        gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$FILENAME$sufix" "$FILENAME";
+        size_result=$(stat -c%s "$FILENAME$sufix");
+        if (( $size_result >= $max_file_size ));
+        then
+            gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$FILENAME$sufix" "$FILENAME";
+        fi
+        size_result=$(stat -c%s "$FILENAME$sufix");
+        if (( $size_result >= $max_file_size ));
+        then
+            echo "[-] Не удалось сжать файл. Размер файла $size_result";
+        fi
+        mv "$FILENAME$sufix" "$FILENAME";
+    fi
+done
+
+# [ convert image ]
+find -name "*.bmp" -o -name "*.BMP" -type f -exec convert '{}' '{}'.jpg;
+
+find . -type f -name "*.jpg" -o -name "*.JPG" |
+while read FILENAME;
+do
+    size=$(stat -c%s "$FILENAME");
+    if (( $size >= $max_file_size ));
+    then
+        echo "$FILENAME";
+        width=$(identify "$FILENAME" | awk '{print $3}' | sed 's/[^0-9]/ /g' | awk '{print $1}');
+        heigh=$(identify "$FILENAME" | awk '{print $3}' | sed 's/[^0-9]/ /g' | awk '{print $2}');
+
+        if [[ $FILENAME =~ $news ]];
+        then
+            px=$px_news;
+        else
+            px=$px_pic;
+        fi
+
+        if (( width > height ));
+        then
+            px="$px x";
+        else
+            px="x $px";
+        fi
+        convert -resize "$px" -quality $quality "$FILENAME" "$FILENAME$sufix";
+        mv "$FILENAME$sufix" "$FILENAME";
+    fi
+done
+
+# [ problem ]
+echo "[-] Не удалось преобразовать следующие файлы:";
+find . -size +2M;
