@@ -1,6 +1,6 @@
 #!/bin/bash
 # global config
-site="";
+site="sitename.com";
 speed="500K";
 max_file_size=2097152;
 sufix=".0x0";
@@ -31,9 +31,9 @@ do
 done < $file_url_list
 
 cd ciur.ru;
-if [ ${PWD##*/} != "ciur.ru" ]
+if [ ${PWD##*/} != $site ]
 then
-    echo "[-] Не найден каталог ciur.ru";
+    echo "[-] Не найден каталог $site";
     exit;
 fi
 
