@@ -16,12 +16,17 @@ px_news=800;
 while read LINE
 do
     size=$(curl -sI "$LINE" | awk '/Content-Length: / { print $2 }' | sed 's/[^0-9]/ /g');
-    if (( $size >= $max_file_size ));
+    if (( $size = 0 ));
     then
-        echo "[<] Скачиваем файл $LINE Размер: $size";
-        wget -np -r -p -k "%site%LINE" --limit-rate=$speed;
+        echo "[-] Не найден файл: $LINE";
     else
-        echo "[>] Файл с нормальным размером: $LINE";
+        if (( $size >= $max_file_size ));
+        then
+            echo "[<] Скачиваем файл $LINE Размер: $size";
+            wget -np -r -p -k "%site%LINE" --limit-rate=$speed;
+        else
+            echo "[>] Файл с нормальным размером: $LINE";
+        fi
     fi
 done < $file_url_list
 
