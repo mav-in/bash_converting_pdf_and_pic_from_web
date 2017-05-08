@@ -68,8 +68,8 @@ find . -type f -name "*.jpg" -o -name "*.JPG" |
 while read FILENAME;
 do
     size=$(stat -c%s "$FILENAME");
-    if (( $size >= $max_file_size ));
-    then
+#    if (( $size >= $max_file_size ));
+#    then
         echo "$FILENAME";
         width=$(identify "$FILENAME" | awk '{print $3}' | sed 's/[^0-9]/ /g' | awk '{print $1}');
         heigh=$(identify "$FILENAME" | awk '{print $3}' | sed 's/[^0-9]/ /g' | awk '{print $2}');
@@ -81,7 +81,7 @@ do
             px=$px_pic;
         fi
 
-        if (( $width > $height ));
+        if (( $width > $heigh ));
         then
             px="$px x";
         else
@@ -89,7 +89,7 @@ do
         fi
         convert -resize "$px" -quality $quality "$FILENAME" "$FILENAME$sufix";
         mv "$FILENAME$sufix" "$FILENAME";
-    fi
+#    fi
 done
 
 # [ problem ]
